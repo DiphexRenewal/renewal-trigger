@@ -1,42 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Renewal Request</title>
+  <meta charset="UTF-8">
+  <title>Renewal Confirmation</title>
+  <script>
+    // Trigger flow when page loads
+    window.onload = function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const contactId = urlParams.get('contactid');
+
+      if (contactId) {
+        // Replace this URL with your actual flow trigger URL
+        const flowUrl = "https://065e9e079c79edf2ba21abfda1c486.a8.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2280ce2f568a4208b476acf3779c4b1f/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=y317qUfOUAJOKmKCXccCJdNd-8gwJG5r90ujMruCsO4";
+
+        fetch(`${flowUrl}&contactid=${encodeURIComponent(contactId)}`, {
+          method: "POST"
+        }).then(response => {
+          console.log("Flow triggered", response);
+        }).catch(error => {
+          console.error("Flow failed", error);
+        });
+      }
+    }
+  </script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 40px;
       text-align: center;
-    }
-    .message {
-      margin-top: 100px;
-      font-size: 1.3em;
-      color: #0078d4;
+      padding: 50px;
     }
   </style>
 </head>
 <body>
-  <div class="message">Your request has been received.<br>We’ll follow up with a quote shortly.</div>
-
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const contactId = params.get("contactid");
-
-    if (contactId) {
-      fetch("https://065e9e079c79edf2ba21abfda1c486.a8.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2280ce2f568a4208b476acf3779c4b1f/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=y317qUfOUAJOKmKCXccCJdNd-8gwJG5r90ujMruCsO4", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ contactid: contactId })
-      }).catch(error => {
-        console.error("Error triggering the flow:", error);
-      });
-    } else {
-      document.querySelector(".message").innerHTML = "Error: Contact ID is missing.";
-    }
-  </script>
+  <h2>Your renewal request has been received</h2>
+  <p>Thank you. A member of the DipHex team will follow up shortly.</p>
 </body>
 </html>
