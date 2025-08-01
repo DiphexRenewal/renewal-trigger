@@ -1,69 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Renewal Request</title>
   <style>
     body {
       font-family: Arial, sans-serif;
+      padding: 40px;
       text-align: center;
-      padding: 50px;
     }
-    button {
-      background-color: #0078d4;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      font-size: 16px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    #status {
-      margin-top: 20px;
-      font-weight: bold;
+    .message {
+      margin-top: 100px;
+      font-size: 1.3em;
+      color: #0078d4;
     }
   </style>
 </head>
 <body>
-  <h2>Renew Your Product/s</h2>
-  <p>Click the button below to request a renewal.</p>
-  <button id="renewBtn">Renew Now</button>
-  <div id="status"></div>
+  <div class="message">Your request has been received.<br>We’ll follow up with a quote shortly.</div>
 
   <script>
-    const flowUrl = "https://065e9e079c79edf2ba21abfda1c486.a8.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2280ce2f568a4208b476acf3779c4b1f/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=y317qUfOUAJOKmKCXccCJdNd-8gwJG5r90ujMruCsO4";
+    const params = new URLSearchParams(window.location.search);
+    const contactId = params.get("contactid");
 
-    function getContactIdFromUrl() {
-      const params = new URLSearchParams(window.location.search);
-      return params.get("contactid");
+    if (contactId) {
+      fetch("https://065e9e079c79edf2ba21abfda1c486.a8.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2280ce2f568a4208b476acf3779c4b1f/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=y317qUfOUAJOKmKCXccCJdNd-8gwJG5r90ujMruCsO4", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ contactid: contactId })
+      }).catch(error => {
+        console.error("Error triggering the flow:", error);
+      });
+    } else {
+      document.querySelector(".message").innerHTML = "Error: Contact ID is missing.";
     }
-
-    document.getElementById("renewBtn").addEventListener("click", async () => {
-      const contactId = getContactIdFromUrl();
-      if (!contactId) {
-        document.getElementById("status").innerText = "Missing contact ID.";
-        return;
-      }
-
-      try {
-        const response = await fetch(flowUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ contactid: contactId })
-        });
-
-        if (response.ok) {
-          document.getElementById("status").innerText = "Request sent successfully. We'll follow up shortly.";
-        } else {
-          document.getElementById("status").innerText = "There was an error. Please try again.";
-        }
-      } catch (err) {
-        document.getElementById("status").innerText = "Error sending request.";
-        console.error(err);
-      }
-    });
   </script>
 </body>
 </html>
