@@ -2,37 +2,30 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Renewal Confirmation</title>
+  <title>Renewal Received</title>
   <script>
-    // Trigger flow when page loads
     window.onload = function () {
       const urlParams = new URLSearchParams(window.location.search);
       const contactId = urlParams.get('contactid');
 
       if (contactId) {
-        // Replace this URL with your actual flow trigger URL
         const flowUrl = "https://065e9e079c79edf2ba21abfda1c486.a8.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2280ce2f568a4208b476acf3779c4b1f/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=y317qUfOUAJOKmKCXccCJdNd-8gwJG5r90ujMruCsO4";
-
-        fetch(`${flowUrl}&contactid=${encodeURIComponent(contactId)}`, {
-          method: "POST"
-        }).then(response => {
-          console.log("Flow triggered", response);
-        }).catch(error => {
-          console.error("Flow failed", error);
-        });
+        fetch(`${flowUrl}&contactid=${encodeURIComponent(contactId)}`, { method: "POST" })
+          .then(res => console.log("Flow triggered:", res.status))
+          .catch(err => console.error("Flow failed:", err));
       }
-    }
+    };
   </script>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      padding: 50px;
+      margin-top: 100px;
     }
   </style>
 </head>
 <body>
   <h2>Your renewal request has been received</h2>
-  <p>Thank you. A member of the DipHex team will follow up shortly.</p>
+  <p>A member of the DipHex team will follow up shortly.</p>
 </body>
 </html>
