@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Renewal Request Received</title>
+    <title>Renewal Request</title>
     <script>
-        window.onload = async function () {
+        async function handleSubmit() {
             const urlParams = new URLSearchParams(window.location.search);
             const contactid = urlParams.get('contactid');
 
@@ -17,20 +17,27 @@
                         body: JSON.stringify({ contactid })
                     });
 
-                    if (!response.ok) {
+                    if (response.ok) {
+                        document.getElementById("message").innerText = "Your request has been received. We’ll be in touch with your quote!";
+                        document.getElementById("submitBtn").style.display = "none";
+                    } else {
+                        document.getElementById("message").innerText = "Something went wrong. Please try again.";
                         console.error("Error from Power Automate:", await response.text());
                     }
                 } catch (e) {
+                    document.getElementById("message").innerText = "Network error. Please try again later.";
                     console.error("Fetch error:", e);
                 }
             } else {
-                console.error("No contactid found in URL.");
+                document.getElementById("message").innerText = "Missing contact ID. Please use the link provided in your email.";
             }
-        };
+        }
     </script>
 </head>
 <body>
-    <h2>Your request has been received.</h2>
-    <p>We will follow up with a quote shortly.</p>
+    <h2 id="message">Hit 'Submit' and we’ll be in touch with your quote!</h2>
+    <button id="submitBtn" onclick="handleSubmit()" style="padding:10px 20px;font-size:16px;border-radius:5px;background-color:#0078d4;color:white;border:none;">
+        Submit
+    </button>
 </body>
 </html>
