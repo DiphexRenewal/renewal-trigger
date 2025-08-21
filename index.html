@@ -41,21 +41,24 @@
       return;
     }
 
-    // 1) Renewal (signed)
+    // 1) Renewal (signed) — unchanged
     const renewalEndpoint =
       'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/643327d14b1b4518a9d5d67902066e8e/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ol4X8anCSGgQJZ8ITkTWJfBIp1p_DsnifBiB_D58aH8';
 
-    // 2) Email status (signed)
+    // 2) Email status (signed) — unchanged
     const emailStatusEndpoint =
       'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/29730e5e96c6455dbf850240d8a5844f/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=vMYPrufC7iMDwZV0h2lnIGUvWeAR1FruKzHTMIwu9wM';
 
-    // 3) Stop Renewal Email (signed) — NEW flow to fire
+    // 3) Stop Renewal Email (signed) — the flow that isn't triggering
     const stopRenewalEndpointBase =
       'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/16d99e3bd64c43eca604519edf351df0/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=t_u1gh1sJEcnarrlaT0N4N1llntYE-B3sbp0TeBX9t8';
 
     function postJSON(url, obj) {
-      // no headers → no preflight; opaque response is fine
-      return fetch(url, { method:'POST', mode:'no-cors', body: JSON.stringify(obj) });
+      // No headers → no preflight; opaque response is fine
+      return fetch(url, { method: 'POST', mode: 'no-cors', keepalive: true, body: JSON.stringify(obj) });
+    }
+    function postNoBody(url) {
+      return fetch(url, { method: 'POST', mode: 'no-cors', keepalive: true });
     }
 
     btn.addEventListener('click', function () {
@@ -66,17 +69,26 @@
       const calls = [];
 
       if (contactid) {
-        // Existing renewal call
+        // Renewal (unchanged)
         calls.push(postJSON(renewalEndpoint, { contactid }));
 
-        // NEW stop-renewal call:
-        // send contactid in BOTH the query string and JSON body to satisfy any trigger parsing
-        const stopUrl = stopRenewalEndpointBase + '&contactid=' + encodeURIComponent(contactid);
-        calls.push(postJSON(stopUrl, { contactid }));
+        // ----- Stop Renewal Email (belt & braces) -----
+        // A) POST with contactid in the query string (no body)
+        const stopQS = stopRenewalEndpointBase + '&contactid=' + encodeURIComponent(contactid);
+        calls.push(postNoBody(stopQS));
+
+        // B) POST with JSON body (no extra query param)
+        calls.push(postJSON(stopRenewalEndpointBase, { contactid }));
+
+        // C) Beacon fallback (fires even if the page is closed)
+        if (navigator.sendBeacon) {
+          try { navigator.sendBeacon(stopQS, JSON.stringify({ contactid })); } catch(e) {}
+        }
+        // ----------------------------------------------
       }
 
       if (eid) {
-        // Existing email-status call
+        // Email Status (unchanged)
         calls.push(postJSON(emailStatusEndpoint, { eid }));
       }
 
