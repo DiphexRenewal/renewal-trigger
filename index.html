@@ -49,13 +49,18 @@
     const emailStatusEndpoint =
       'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/29730e5e96c6455dbf850240d8a5844f/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=vMYPrufC7iMDwZV0h2lnIGUvWeAR1FruKzHTMIwu9wM';
 
-    // 3) Stop Renewal Email (signed) — send ONE JSON POST with { contactid }
+    // 3) Stop Renewal Email (signed) — keep trigger schema, always send JSON body
     const stopRenewalEndpoint =
       'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/16d99e3bd64c43eca604519edf351df0/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=t_u1gh1sJEcnarrlaT0N4N1llntYE-B3sbp0TeBX9t8';
 
     function postJSON(url, obj) {
-      // No headers → no CORS preflight; opaque response is fine
-      return fetch(url, { method: 'POST', mode: 'no-cors', keepalive: true, body: JSON.stringify(obj) });
+      // No headers to avoid preflight; body is JSON string the trigger can parse
+      return fetch(url, {
+        method: 'POST',
+        mode: 'no-cors',
+        keepalive: true,
+        body: JSON.stringify(obj)
+      });
     }
 
     btn.addEventListener('click', function () {
@@ -66,15 +71,15 @@
       const calls = [];
 
       if (contactid) {
-        // Renewal (unchanged)
+        // Renewal
         calls.push(postJSON(renewalEndpoint, { contactid }));
 
-        // Stop Renewal (single JSON POST to the signed URL)
+        // Stop Renewal Email — **only** JSON body (no query-only POST, no beacon)
         calls.push(postJSON(stopRenewalEndpoint, { contactid }));
       }
 
       if (eid) {
-        // Email Status (unchanged)
+        // Email Status
         calls.push(postJSON(emailStatusEndpoint, { eid }));
       }
 
