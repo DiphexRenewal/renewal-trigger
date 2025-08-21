@@ -49,16 +49,13 @@
     const emailStatusEndpoint =
       'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/29730e5e96c6455dbf850240d8a5844f/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=vMYPrufC7iMDwZV0h2lnIGUvWeAR1FruKzHTMIwu9wM';
 
-    // 3) Stop Renewal Email (signed) — the flow that isn't triggering
-    const stopRenewalEndpointBase =
+    // 3) Stop Renewal Email (signed) — send ONE JSON POST with { contactid }
+    const stopRenewalEndpoint =
       'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/16d99e3bd64c43eca604519edf351df0/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=t_u1gh1sJEcnarrlaT0N4N1llntYE-B3sbp0TeBX9t8';
 
     function postJSON(url, obj) {
-      // No headers → no preflight; opaque response is fine
+      // No headers → no CORS preflight; opaque response is fine
       return fetch(url, { method: 'POST', mode: 'no-cors', keepalive: true, body: JSON.stringify(obj) });
-    }
-    function postNoBody(url) {
-      return fetch(url, { method: 'POST', mode: 'no-cors', keepalive: true });
     }
 
     btn.addEventListener('click', function () {
@@ -72,19 +69,8 @@
         // Renewal (unchanged)
         calls.push(postJSON(renewalEndpoint, { contactid }));
 
-        // ----- Stop Renewal Email (belt & braces) -----
-        // A) POST with contactid in the query string (no body)
-        const stopQS = stopRenewalEndpointBase + '&contactid=' + encodeURIComponent(contactid);
-        calls.push(postNoBody(stopQS));
-
-        // B) POST with JSON body (no extra query param)
-        calls.push(postJSON(stopRenewalEndpointBase, { contactid }));
-
-        // C) Beacon fallback (fires even if the page is closed)
-        if (navigator.sendBeacon) {
-          try { navigator.sendBeacon(stopQS, JSON.stringify({ contactid })); } catch(e) {}
-        }
-        // ----------------------------------------------
+        // Stop Renewal (single JSON POST to the signed URL)
+        calls.push(postJSON(stopRenewalEndpoint, { contactid }));
       }
 
       if (eid) {
