@@ -44,25 +44,20 @@
       }
 
       // ENDPOINTS
-      // 1) Renewal (contactid) – signed URL (leave as-is)
+      // 1) Renewal (signed URL – leave as-is)
       const renewalEndpoint =
         'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/643327d14b1b4518a9d5d67902066e8e/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ol4X8anCSGgQJZ8ITkTWJfBIp1p_DsnifBiB_D58aH8';
 
-      // 2) Email status (eid) – base URL; we will append &eid=... in the query string
-      const emailStatusBase =
-        'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/29730e5e96c6455dbf850240d8a5844f/triggers/manual/paths/invoke/?api-version=1';
+      // 2) Email status (your signed URL pasted here)
+      const emailStatusSigned =
+        'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/29730e5e96c6455dbf850240d8a5844f/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=vMYPrufC7iMDwZV0h2lnIGUvWeAR1FruKzHTMIwu9wM';
 
       // Helpers
       function postJSON(url, obj) {
         // no-cors to avoid preflight
-        return fetch(url, {
-          method: 'POST',
-          mode: 'no-cors',
-          body: JSON.stringify(obj)
-        });
+        return fetch(url, { method: 'POST', mode: 'no-cors', body: JSON.stringify(obj) });
       }
       function postNoBody(url) {
-        // no-cors, no body (used for email-status where eid is read from querystring)
         return fetch(url, { method: 'POST', mode: 'no-cors' });
       }
 
@@ -73,16 +68,16 @@
 
         const calls = [];
         if (contactid) {
-          // Renewal flow still expects/accepts contactid in the body
+          // Renewal flow expects the contactid in the body
           calls.push(postJSON(renewalEndpoint, { contactid }));
         }
         if (eid) {
-          // Email-status flow now reads eid from the QUERY STRING (no body)
-          const statusUrl = emailStatusBase + '&eid=' + encodeURIComponent(eid);
+          // Email-status flow reads eid from the QUERY STRING (no body)
+          const statusUrl = emailStatusSigned + '&eid=' + encodeURIComponent(eid);
           calls.push(postNoBody(statusUrl));
         }
 
-        // We can't read responses in no-cors; assume success once fired
+        // We can’t read responses in no-cors; treat as success after firing
         Promise.allSettled(calls).then(() => {
           status.textContent = 'Thanks — your request was received. We will send a quote shortly.';
           status.className = 'ok';
