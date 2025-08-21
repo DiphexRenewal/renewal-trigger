@@ -19,80 +19,64 @@
     <h1>Confirm your renewal request</h1>
     <p>Click the button below to confirm you’d like us to prepare a quote.</p>
 
-    <!-- If your previous page already had a button with this id,
-         we are reusing it; styles are the same. -->
     <button id="submitBtn" class="primary">Submit</button>
     <p id="msg" class="muted" style="margin-top:1rem;"></p>
   </div>
 
   <script>
-  (function () {
-    // Read query parameters
-    var qs = new URLSearchParams(location.search);
-    var contactid = qs.get('contactid');   // used by your existing flow
-    var eid       = qs.get('eid');         // used by the new flow
+    (function () {
+      // Read query parameters
+      const qs = new URLSearchParams(location.search);
+      const contactid = qs.get('contactid');   // used by your original flow
+      const eid       = qs.get('eid');         // used by the new flow
 
-    // Your Power Automate HTTP trigger endpoint
-    var endpoint = 'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/29730e5e96c6455dbf850240d8a5844f/triggers/manual/paths/invoke/?api-version=1';
+      // Your existing DEV endpoint (unchanged)
+      const endpoint =
+        'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com/powerautomate/automations/direct/workflows/29730e5e96c6455dbf850240d8a5844f/triggers/manual/paths/invoke/?api-version=1';
 
-    var btn = document.getElementById('submitBtn');
-    var msg = document.getElementById('msg');
+      const btn = document.getElementById('submitBtn');
+      const msg = document.getElementById('msg');
 
-    // If neither param is present, keep the page safe and do nothing on click
-    if (!contactid && !eid) {
-      btn.disabled = true;
-      msg.textContent = 'Sorry, this link is missing a reference. Please open the link directly from your email.';
-      return;
-    }
-
-    // Wire the button: send one or both payloads depending on which params are present
-    btn.addEventListener('click', function () {
-      btn.disabled = true;
-      msg.textContent = 'Submitting...';
-
-      // Build the list of calls to make — preserves original + adds the new call
-      var requests = [];
-
-      if (contactid) {
-        requests.push(
-          fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contactid: contactid })
-          })
-        );
+      // If neither param present, disable the button
+      if (!contactid && !eid) {
+        btn.disabled = true;
+        msg.textContent =
+          'Sorry, this link is missing a reference. Please open the link directly from your email.';
+        return;
       }
 
-      if (eid) {
-        requests.push(
-          fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ eid: eid })
-          })
-        );
+      function show(text, color) {
+        msg.textContent = text;
+        if (color) msg.style.color = color;
       }
 
-      // Wait for all required calls to finish
-      Promise.all(requests.map(function (p) {
-        return p.then(function (r) { return r.ok; }).catch(function () { return false; });
-      }))
-      .then(function (results) {
-        // success only if all calls succeeded
-        var allOk = results.every(Boolean);
-        if (allOk) {
-          msg.textContent = 'Thanks — your request was received. We will send a quote shortly.';
-        } else {
-          msg.textContent = 'Sorry, something went wrong. Please try again later.';
+      function postConfirmation() {
+        btn.disabled = true;
+        show('Submitting…');
+
+        // Build payload with whichever values are present
+        const payload = {};
+        if (eid)       payload.eid       = eid;
+        if (contactid) payload.contactid = contactid;
+
+        // IMPORTANT: no custom headers; use no-cors to avoid preflight (CORS) blocking
+        fetch(endpoint, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify(payload)
+        })
+        .then(() => {
+          // We can’t read response (opaque), but the POST was sent
+          show('Thanks — your renewal request was submitted.', '#107c10');
+        })
+        .catch(() => {
+          show('Sorry, something went wrong. Please try again later.', '#a80000');
           btn.disabled = false;
-        }
-      })
-      .catch(function () {
-        msg.textContent = 'Network error — please try again.';
-        btn.disabled = false;
-      });
-    }, false);
-  })();
+        });
+      }
+
+      btn.addEventListener('click', postConfirmation, false);
+    })();
   </script>
 </body>
 </html>
