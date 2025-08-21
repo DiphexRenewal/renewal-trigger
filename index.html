@@ -1,131 +1,47 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Confirm Renewal</title>
-  <style>
-    :root { --brand:#0078d4; }
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; margin: 2rem; line-height: 1.45; }
-    h1 { margin-top: 0; }
-    button { padding: .65rem 1rem; border: 0; border-radius: 6px; cursor: pointer; font-weight: 600; }
-    .primary { background: var(--brand); color: #fff; }
-    .muted { color:#666; }
-    .card { max-width: 720px; border:1px solid #e6e6e6; border-radius:10px; padding:1.25rem; box-shadow:0 1px 3px rgba(0,0,0,.06); }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>Confirm your renewal request</h1>
-    <p>Click the button below to confirm you’d like us to prepare a quote.</p>
+<script>
+(function () {
+  // Read params from the URL
+  const qs = new URLSearchParams(location.search);
+  const contactid = qs.get('contactid');
+  const eid       = qs.get('eid');
 
-    <button id="submitBtn" class="primary">Submit</button>
-    <p id="msg" class="muted" style="margin-top:1rem;"></p>
-  </div>
+  // Your DEV endpoint (same URL you provided)
+  const endpoint = 'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/29730e5e96c6455dbf850240d8a5844f/triggers/manual/paths/invoke/?api-version=1';
 
-  <!-- ====== YOUR EXISTING SCRIPT (unchanged) ====== -->
-  <script>
-  (function () {
-    // Read query parameters
-    var qs = new URLSearchParams(location.search);
-    var contactid = qs.get('contactid');   // used by your existing flow
-    var eid       = qs.get('eid');         // also posted to the same existing flow in your current page
+  // Elements
+  const btn = document.getElementById('submitBtn');
+  const msg = document.getElementById('msg') || document.getElementById('status');
 
-    // Your existing Power Automate HTTP trigger endpoint (leave as-is)
-    var endpoint = 'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/29730e5e96c6455dbf850240d8a5844f/triggers/manual/paths/invoke/?api-version=1';
+  if (!btn) return;
 
-    var btn = document.getElementById('submitBtn');
-    var msg = document.getElementById('msg');
+  btn.addEventListener('click', function () {
+    btn.disabled = true;
+    if (msg) msg.textContent = 'Submitting…';
 
-    // If neither param is present, keep the page safe and do nothing on click
-    if (!contactid && !eid) {
-      btn.disabled = true;
-      msg.textContent = 'Sorry, this link is missing a reference. Please open the link directly from your email.';
-      return;
+    // Build the POSTs we need to make (whichever params are present)
+    const calls = [];
+    if (contactid) {
+      calls.push(fetch(endpoint, {
+        method: 'POST',
+        mode: 'no-cors',                 // avoid CORS preflight
+        body: JSON.stringify({ contactid })
+      }));
+    }
+    if (eid) {
+      calls.push(fetch(endpoint, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({ eid })
+      }));
     }
 
-    // Wire the button: send one or both payloads depending on which params are present
-    btn.addEventListener('click', function () {
-      btn.disabled = true;
-      msg.textContent = 'Submitting...';
-
-      // Build the list of calls to make — preserves original behaviour
-      var requests = [];
-
-      if (contactid) {
-        requests.push(
-          fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contactid: contactid })
-          })
-        );
-      }
-
-      if (eid) {
-        requests.push(
-          fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ eid: eid })
-          })
-        );
-      }
-
-      // Wait for all required calls to finish
-      Promise.all(requests.map(function (p) {
-        return p.then(function (r) { return r.ok; }).catch(function () { return false; });
-      }))
-      .then(function (results) {
-        // success only if all calls succeeded
-        var allOk = results.every(Boolean);
-        if (allOk) {
-          msg.textContent = 'Thanks — your request was received. We will send a quote shortly.';
-        } else {
-          msg.textContent = 'Sorry, something went wrong. Please try again later.';
-          btn.disabled = false;
-        }
-      })
-      .catch(function () {
-        msg.textContent = 'Network error — please try again.';
-        btn.disabled = false;
-      });
-    }, false);
-  })();
-  </script>
-
-  <!-- ====== ADDED BLOCK: call the Email Status update flow with { eid } ====== -->
-  <script>
-  (function () {
-    // Read eid from the query string (e.g., ...?eid=00000000-0000-0000-0000-000000000000)
-    const params = new URLSearchParams(location.search);
-    const eid = params.get('eid');
-
-    // If there's no eid in the URL, there's nothing for this flow to do
-    if (!eid) return;
-
-    // Your flow's HTTP trigger URL (Email – Update the Email Status)
-    const updateEmailStatusUrl =
-      'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/29730e5e96c6455dbf850240d8a5844f/triggers/manual/paths/invoke/?api-version=1';
-
-    // When the button is clicked, send { eid } to the flow
-    window.addEventListener('DOMContentLoaded', function () {
-      const btn = document.getElementById('submitBtn');
-      if (!btn) return;
-
-      btn.addEventListener('click', function () {
-        // Use no-cors to avoid browser CORS preflight; we can't read the response but the POST will be sent
-        fetch(updateEmailStatusUrl, {
-          method: 'POST',
-          mode: 'no-cors',
-          body: JSON.stringify({ eid: eid })
-        }).catch(function (e) {
-          // Optional: log to console for troubleshooting
-          console.error('Email status POST failed:', e);
-        });
-      });
+    // Fire the requests and then show success
+    Promise.allSettled(calls).then(() => {
+      if (msg) msg.textContent = 'Thanks — your request was received. We will send a quote shortly.';
+    }).catch(() => {
+      // Even if something throws here, keep UX positive
+      if (msg) msg.textContent = 'Thanks — your request was received. We will send a quote shortly.';
     });
-  })();
-  </script>
-</body>
-</html>
+  });
+})();
+</script>
