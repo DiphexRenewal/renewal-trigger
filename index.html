@@ -32,7 +32,7 @@
       const contactid = qs.get('contactid');  // renewal flow
       const eid       = qs.get('eid');        // email-status flow
 
-      // If neither param is present, keep the page but explain why the button is disabled
+      // UI bits
       const btn = document.getElementById('submitBtn');
       const status = document.getElementById('status');
 
@@ -44,21 +44,26 @@
       }
 
       // ENDPOINTS
-      // 1) Renewal (contactid) – your signed URL
+      // 1) Renewal (contactid) – signed URL (leave as-is)
       const renewalEndpoint =
         'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/643327d14b1b4518a9d5d67902066e8e/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ol4X8anCSGgQJZ8ITkTWJfBIp1p_DsnifBiB_D58aH8';
 
-      // 2) Email status (eid) – existing unsigned URL
-      const emailStatusEndpoint =
+      // 2) Email status (eid) – base URL; we will append &eid=... in the query string
+      const emailStatusBase =
         'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/29730e5e96c6455dbf850240d8a5844f/triggers/manual/paths/invoke/?api-version=1';
 
+      // Helpers
       function postJSON(url, obj) {
-        // no-cors to avoid preflight; we can't read response (opaque) but the POST is sent
+        // no-cors to avoid preflight
         return fetch(url, {
           method: 'POST',
           mode: 'no-cors',
           body: JSON.stringify(obj)
         });
+      }
+      function postNoBody(url) {
+        // no-cors, no body (used for email-status where eid is read from querystring)
+        return fetch(url, { method: 'POST', mode: 'no-cors' });
       }
 
       btn.addEventListener('click', function () {
@@ -67,10 +72,17 @@
         status.className = 'muted';
 
         const calls = [];
-        if (contactid) calls.push(postJSON(renewalEndpoint, { contactid }));
-        if (eid)       calls.push(postJSON(emailStatusEndpoint, { eid }));
+        if (contactid) {
+          // Renewal flow still expects/accepts contactid in the body
+          calls.push(postJSON(renewalEndpoint, { contactid }));
+        }
+        if (eid) {
+          // Email-status flow now reads eid from the QUERY STRING (no body)
+          const statusUrl = emailStatusBase + '&eid=' + encodeURIComponent(eid);
+          calls.push(postNoBody(statusUrl));
+        }
 
-        // Assume success once the requests are fired (no-cors prevents reading the response)
+        // We can't read responses in no-cors; assume success once fired
         Promise.allSettled(calls).then(() => {
           status.textContent = 'Thanks — your request was received. We will send a quote shortly.';
           status.className = 'ok';
