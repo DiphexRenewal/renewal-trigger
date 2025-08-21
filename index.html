@@ -45,9 +45,13 @@
     const renewalEndpoint =
       'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/643327d14b1b4518a9d5d67902066e8e/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ol4X8anCSGgQJZ8ITkTWJfBIp1p_DsnifBiB_D58aH8';
 
-    // Email status (signed) — the one you provided
+    // Email status (signed)
     const emailStatusEndpoint =
       'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/29730e5e96c6455dbf850240d8a5844f/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=vMYPrufC7iMDwZV0h2lnIGUvWeAR1FruKzHTMIwu9wM';
+
+    // NEW: Stop Renewal Email (signed) — triggers the third flow you shared
+    const stopRenewalEndpoint =
+      'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/16d99e3bd64c43eca604519edf351df0/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=t_u1gh1sJEcnarrlaT0N4N1llntYE-B3sbp0TeBX9t8';
 
     function postJSON(url, obj) {
       // no headers → no preflight; body is a plain string
@@ -60,8 +64,16 @@
       status.className = 'muted';
 
       const calls = [];
-      if (contactid) calls.push(postJSON(renewalEndpoint, { contactid }));
-      if (eid)       calls.push(postJSON(emailStatusEndpoint, { eid }));
+      if (contactid) {
+        // Existing call
+        calls.push(postJSON(renewalEndpoint, { contactid }));
+        // NEW call (third flow)
+        calls.push(postJSON(stopRenewalEndpoint, { contactid }));
+      }
+      if (eid) {
+        // Existing call
+        calls.push(postJSON(emailStatusEndpoint, { eid }));
+      }
 
       Promise.allSettled(calls).then(() => {
         status.textContent = 'Thanks — your request was received. We will send a quote shortly.';
