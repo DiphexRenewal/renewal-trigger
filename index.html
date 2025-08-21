@@ -2,13 +2,18 @@
 (function () {
   // Read params from the URL
   const qs = new URLSearchParams(location.search);
-  const contactid = qs.get('contactid');
-  const eid       = qs.get('eid');
+  const contactid = qs.get('contactid');   // used by your existing renewal flow
+  const eid       = qs.get('eid');         // used by the new email-status flow
 
-  // Your DEV endpoint (same URL you provided)
-  const endpoint = 'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/29730e5e96c6455dbf850240d8a5844f/triggers/manual/paths/invoke/?api-version=1';
+  // ENDPOINTS
+  // 1) Renewal flow (contactid) – paste your Child flow HTTP POST URL here:
+  const renewalEndpoint = '<<PASTE_CHILD_FLOW_HTTP_POST_URL_HERE>>';
 
-  // Elements
+  // 2) Email status flow (eid) – leave as-is
+  const emailStatusEndpoint =
+    'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/29730e5e96c6455dbf850240d8a5844f/triggers/manual/paths/invoke/?api-version=1';
+
+  // UI
   const btn = document.getElementById('submitBtn');
   const msg = document.getElementById('msg') || document.getElementById('status');
 
@@ -18,30 +23,34 @@
     btn.disabled = true;
     if (msg) msg.textContent = 'Submitting…';
 
-    // Build the POSTs we need to make (whichever params are present)
     const calls = [];
-    if (contactid) {
-      calls.push(fetch(endpoint, {
+
+    // Send to renewal flow if we have a contactid AND a real URL was provided
+    if (contactid && renewalEndpoint && !renewalEndpoint.startsWith('<<')) {
+      calls.push(fetch(renewalEndpoint, {
         method: 'POST',
         mode: 'no-cors',                 // avoid CORS preflight
         body: JSON.stringify({ contactid })
       }));
     }
+
+    // Send to email-status flow if we have an eid
     if (eid) {
-      calls.push(fetch(endpoint, {
+      calls.push(fetch(emailStatusEndpoint, {
         method: 'POST',
         mode: 'no-cors',
         body: JSON.stringify({ eid })
       }));
     }
 
-    // Fire the requests and then show success
-    Promise.allSettled(calls).then(() => {
-      if (msg) msg.textContent = 'Thanks — your request was received. We will send a quote shortly.';
-    }).catch(() => {
-      // Even if something throws here, keep UX positive
-      if (msg) msg.textContent = 'Thanks — your request was received. We will send a quote shortly.';
-    });
+    // We can’t read responses in no-cors; assume success once the POSTs are fired
+    Promise.allSettled(calls)
+      .then(() => {
+        if (msg) msg.textContent = 'Thanks — your request was received. We will send a quote shortly.';
+      })
+      .catch(() => {
+        if (msg) msg.textContent = 'Thanks — your request was received. We will send a quote shortly.';
+      });
   });
 })();
 </script>
