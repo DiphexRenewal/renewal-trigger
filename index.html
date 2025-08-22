@@ -43,15 +43,15 @@
 
     // 1) Renewal (signed) — unchanged
     const renewalEndpoint =
-      'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/643327d14b1b4518a9d5d67902066e8e/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ol4X8anCSGgQJZ8ITkTWJfBIp1p_DsnifBiB_D58aH8';
+      'https://5d94718007a1e4989f9274a896dff6.a8.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/10ee33242b7f4352bdad32da81d5ca3d/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=6L0VYvBe66bZ7MrqqczsKL9pmd6eFohHdI_tMmObRUk';
 
     // 2) Email status (signed) — unchanged
     const emailStatusEndpoint =
-      'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/29730e5e96c6455dbf850240d8a5844f/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=vMYPrufC7iMDwZV0h2lnIGUvWeAR1FruKzHTMIwu9wM';
+      'https://5d94718007a1e4989f9274a896dff6.a8.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/12210a2bcb794c89b546ec220b007023/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=OtgoHxx4BMZkfNa03B9nC2tIo_x_S8Sme2F1Lgxmty8';
 
     // 3) Stop Renewal Email (signed) — keep trigger schema, always send JSON body
     const stopRenewalEndpoint =
-      'https://30258aec3152eb969baf613b392853.a6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/16d99e3bd64c43eca604519edf351df0/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=t_u1gh1sJEcnarrlaT0N4N1llntYE-B3sbp0TeBX9t8';
+      'https://5d94718007a1e4989f9274a896dff6.a8.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/9cd3356925504f168a77589ac473444d/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=k7AakpDuU28zMISM6khqObMA1A_4TVMfTWwUAEJ1Drw';
 
     function postJSON(url, obj) {
       // No headers to avoid preflight; body is JSON string the trigger can parse
