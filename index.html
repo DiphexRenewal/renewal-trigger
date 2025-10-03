@@ -47,11 +47,11 @@
 
     // 2) Email status (signed) — unchanged
     const emailStatusEndpoint =
-      'https://5d94718007a1e4989f9274a896dff6.a8.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/12210a2bcb794c89b546ec220b007023/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=OtgoHxx4BMZkfNa03B9nC2tIo_x_S8Sme2F1Lgxmty8';
+      'https://2e4edb708260e366bbd8ccb7c65d82.a3.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/1b28344ed0244c478fe2a4936c35fafa/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=VS7z-HdUenrizNb6cFZuOf2ie-nJyciy5rLt-u1cRbQ';
 
     // 3) Stop Renewal Email (signed) — keep trigger schema, always send JSON body
     const stopRenewalEndpoint =
-      'https://5d94718007a1e4989f9274a896dff6.a8.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/9cd3356925504f168a77589ac473444d/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=k7AakpDuU28zMISM6khqObMA1A_4TVMfTWwUAEJ1Drw';
+      'https://2e4edb708260e366bbd8ccb7c65d82.a3.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/51c1f33573b74bfda0406c82c36c3493/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=qEkVxHJgLaggLaDeHZ6NeKXQJ0xPVr4-0hRxjirjiHs';
 
     function postJSON(url, obj) {
       // No headers to avoid preflight; body is JSON string the trigger can parse
